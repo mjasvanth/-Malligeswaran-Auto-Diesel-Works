@@ -5,95 +5,364 @@ import admin from "firebase-admin";
 
 dotenv.config();
 
+// Firebase Admin SDK
 admin.initializeApp({
   credential: admin.credential.applicationDefault()
 });
 
 const db = admin.firestore();
 const auth = admin.auth();
+
 const app = express();
 
-app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN?.split(",") || "*"
-}));
-app.use(express.json({limit:"1mb"}));
+// CORS
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN
+      ? process.env.FRONTEND_ORIGIN.split(",")
+      : "*"
+  })
+);
 
-function clean(value, max=500){
-  return String(value ?? "").trim().slice(0,max);
+app.use(express.json({ limit: "1mb" }));
+
+// Clean input
+function clean(value, max = 500) {
+  return String(value ?? "")
+    .trim()
+    .slice(0, max);
 }
 
-async function requireAdmin(req,res,next){
-  try{
-    const header=req.headers.authorization || "";
-    if(!header.startsWith("Bearer ")) return res.status(401).json({message:"Authentication required"});
-    const token=header.slice(7);
-    req.user=await auth.verifyIdToken(token);
-    // For production, add a custom admin claim and check req.user.admin === true.
+function bookingMeta() {
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", day: "2-digit", month: "long", year: "numeric"
+  }).formatToParts(now);
+  const part = type => dateParts.find(item => item.type === type)?.value;
+  const bookingDate = `${part("day")} ${part("month")} ${part("year")}`;
+  const bookingTime = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit", hour12: true
+  }).format(now).toUpperCase();
+  const compactDate = `${part("year")}${part("month").slice(0, 3).toUpperCase()}${part("day")}`;
+  const compactTime = bookingTime.replace(/[^0-9APM]/g, "");
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return { bookingDate, bookingTime, bookingReference: `MADW-${compactDate}-${compactTime}-${suffix}` };
+}
+
+function jobCardMeta() {
+  const meta = bookingMeta();
+  return {
+    jobCardNo: `JC-${meta.bookingReference}`,
+    jobCardDate: meta.bookingDate,
+    jobCardTime: meta.bookingTime
+  };
+}
+
+// Admin authentication
+async function requireAdmin(req, res, next) {
+  try {
+    const header = req.headers.authorization || "";
+
+    if (!header.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Authentication required"
+      });
+    }
+
+    const token = header.slice(7);
+
+    req.user = await auth.verifyIdToken(token);
+
     next();
-  }catch(e){
-    console.error(e);
-    res.status(401).json({message:"Invalid or expired authentication token"});
+  } catch (error) {
+    console.error("Admin authentication error:", error);
+
+    return res.status(401).json({
+      message: "Invalid or expired authentication token"
+    });
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,service:"lorry-repair-pro"}));
-
-app.post("/api/bookings", async (req,res)=>{
-  try{
-    const b={
-      name:clean(req.body.name,100),
-      mobile:clean(req.body.mobile,30),
-      vehicleNo:clean(req.body.vehicleNo,40).toUpperCase(),
-      vehicleType:clean(req.body.vehicleType,60),
-      preferredDate:clean(req.body.preferredDate,30),
-      serviceType:clean(req.body.serviceType,80),
-      problem:clean(req.body.problem,1000),
-      status:"Pending",
-      createdAt:admin.firestore.FieldValue.serverTimestamp()
-    };
-    if(!b.name || !b.mobile || !b.vehicleNo || !b.vehicleType || !b.serviceType)
-      return res.status(400).json({message:"Please fill all required fields"});
-    const ref=await db.collection("bookings").add(b);
-    res.status(201).json({ok:true,bookingId:ref.id});
-  }catch(e){
-    console.error(e);
-    res.status(500).json({message:"Unable to create booking"});
-  }
-});
-
-app.get("/api/bookings", requireAdmin, async (req,res)=>{
-  try{
-    const snap=await db.collection("bookings").orderBy("createdAt","desc").limit(100).get();
-    const bookings=snap.docs.map(d=>({id:d.id,...d.data()}));
-    res.json({bookings});
-  }catch(e){
-    console.error(e);
-    res.status(500).json({message:"Unable to load bookings"});
-  }
-});
-
-app.get("/api/bookings/:id", requireAdmin, async (req,res)=>{
-  try{
-    const doc=await db.collection("bookings").doc(req.params.id).get();
-    if(!doc.exists) return res.status(404).json({message:"Booking not found"});
-    res.json({booking:{id:doc.id,...doc.data()}});
-  }catch(e){
-    console.error(e);
-    res.status(500).json({message:"Unable to load booking"});
-  }
-});
-
-app.patch("/api/bookings/:id/status", requireAdmin, async (req,res)=>{
-  const allowed=["Pending","Inspection","Approved","In Progress","Ready","Delivered","Cancelled"];
-  const status=clean(req.body.status,30);
-  if(!allowed.includes(status)) return res.status(400).json({message:"Invalid status"});
-  await db.collection("bookings").doc(req.params.id).update({
-    status, updatedAt:admin.firestore.FieldValue.serverTimestamp()
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    service: "AUTO DIESEL WORKS"
   });
-  res.json({ok:true});
 });
 
-app.use((req,res)=>res.status(404).json({message:"Route not found"}));
+// Create booking
+app.post("/api/bookings", async (req, res) => {
+  try {
+    const meta = bookingMeta();
+    const booking = {
+      bookingReference: meta.bookingReference,
+      bookingDate: meta.bookingDate,
+      bookingTime: meta.bookingTime,
+      name: clean(req.body.name, 100),
+      mobile: clean(req.body.mobile, 30),
+      email: clean(req.body.email, 150),
+      vehicleNo: clean(req.body.vehicleNo, 40).toUpperCase(),
+      vehicleType: clean(req.body.vehicleType, 60),
+      lastServiceDate: clean(req.body.lastServiceDate, 30),
+      lastServiceType: clean(req.body.lastServiceType, 120),
+      serviceType: clean(req.body.serviceType, 80),
+      problem: clean(req.body.problem, 1000),
 
-const port=process.env.PORT || 5000;
-app.listen(port,()=>console.log(`LorryCare backend running on http://localhost:${port}`));
+      status: "Pending",
+
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Required fields
+    if (
+      !booking.name ||
+      !booking.mobile ||
+      !booking.vehicleNo ||
+      !booking.vehicleType ||
+      !booking.serviceType
+    ) {
+      return res.status(400).json({
+        message: "Please fill all required fields"
+      });
+    }
+
+    // Save to Firestore
+    const ref = db.collection("bookings").doc();
+    await ref.set(booking);
+
+    console.log("New booking:", ref.id);
+
+    res.status(201).json({
+      ok: true,
+      bookingId: ref.id,
+      bookingReference: booking.bookingReference,
+      bookingDate: booking.bookingDate,
+      bookingTime: booking.bookingTime
+    });
+
+  } catch (error) {
+    console.error("Booking error:", error);
+
+    res.status(500).json({
+      message: "Unable to create booking"
+    });
+  }
+});
+
+// Create a shop collaboration enquiry
+app.post("/api/shop-collaborations", async (req, res) => {
+  try {
+    const collaboration = {
+      shopName: clean(req.body.shopName, 120),
+      contactName: clean(req.body.contactName, 100),
+      mobile: clean(req.body.mobile, 30),
+      email: clean(req.body.email, 150),
+      location: clean(req.body.location, 200),
+      services: clean(req.body.services, 500),
+      status: "New",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    if (!collaboration.shopName || !collaboration.contactName || !collaboration.mobile || !collaboration.location) {
+      return res.status(400).json({ message: "Please fill shop name, contact name, mobile number and location" });
+    }
+    const ref = await db.collection("shopCollaborations").add(collaboration);
+    res.status(201).json({ ok: true, collaborationId: ref.id });
+  } catch (error) {
+    console.error("Collaboration error:", error);
+    res.status(500).json({ message: "Unable to submit collaboration request" });
+  }
+});
+
+// Get all bookings - Admin only
+app.get("/api/bookings", requireAdmin, async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("bookings")
+      .orderBy("createdAt", "desc")
+      .limit(100)
+      .get();
+
+    const bookings = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json({
+      bookings
+    });
+
+  } catch (error) {
+    console.error("Load bookings error:", error);
+
+    res.status(500).json({
+      message: "Unable to load bookings"
+    });
+  }
+});
+
+// Load shop collaboration enquiries - Admin only
+app.get("/api/shop-collaborations", requireAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection("shopCollaborations").orderBy("createdAt", "desc").limit(100).get();
+    res.json({ collaborations: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
+  } catch (error) {
+    console.error("Load collaborations error:", error);
+    res.status(500).json({ message: "Unable to load collaboration requests" });
+  }
+});
+
+// Get single booking
+app.get("/api/bookings/:id", requireAdmin, async (req, res) => {
+  try {
+    const doc = await db
+      .collection("bookings")
+      .doc(req.params.id)
+      .get();
+
+    if (!doc.exists) {
+      return res.status(404).json({
+        message: "Booking not found"
+      });
+    }
+
+    res.json({
+      booking: {
+        id: doc.id,
+        ...doc.data()
+      }
+    });
+
+  } catch (error) {
+    console.error("Get booking error:", error);
+
+    res.status(500).json({
+      message: "Unable to load booking"
+    });
+  }
+});
+
+// Update booking status
+app.patch(
+  "/api/bookings/:id/status",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const allowedStatuses = [
+        "Pending",
+        "Inspection",
+        "Approved",
+        "In Progress",
+        "Ready",
+        "Delivered",
+        "Cancelled"
+      ];
+
+      const status = clean(req.body.status, 30);
+
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Invalid status"
+        });
+      }
+
+      await db
+        .collection("bookings")
+        .doc(req.params.id)
+        .update({
+          status,
+          updatedAt:
+            admin.firestore.FieldValue.serverTimestamp()
+        });
+
+      res.json({
+        ok: true
+      });
+
+    } catch (error) {
+      console.error("Status update error:", error);
+
+      res.status(500).json({
+        message: "Unable to update booking status"
+      });
+    }
+  }
+);
+
+// Save job-card parts, labour and bill - Admin only
+app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
+  try {
+    const rawItems = Array.isArray(req.body.items) ? req.body.items : [];
+    if (rawItems.length > 50) {
+      return res.status(400).json({ message: "Maximum 50 bill items allowed" });
+    }
+
+    const toAmount = (value, maximum = 10000000) => {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= 0 ? Math.min(number, maximum) : 0;
+    };
+
+    const items = rawItems
+      .map((item) => {
+        const quantity = toAmount(item.quantity, 10000);
+        const rate = toAmount(item.rate);
+        return {
+          description: clean(item.description, 200),
+          quantity,
+          rate,
+          amount: quantity * rate
+        };
+      })
+      .filter((item) => item.description || item.quantity || item.rate);
+
+    const subtotal = items.reduce((total, item) => total + item.amount, 0);
+    const gstRate = Math.min(toAmount(req.body.gstRate, 100), 100);
+    const gstAmount = subtotal * gstRate / 100;
+    const ref = db.collection("bookings").doc(req.params.id);
+    const booking = await ref.get();
+    if (!booking.exists) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    const previousJobCard = booking.data().jobCard || {};
+    const meta = previousJobCard.jobCardNo ? {
+      jobCardNo: previousJobCard.jobCardNo,
+      jobCardDate: previousJobCard.jobCardDate,
+      jobCardTime: previousJobCard.jobCardTime
+    } : jobCardMeta();
+    const jobCard = {
+      ...meta,
+      items,
+      gstRate,
+      subtotal,
+      gstAmount,
+      grandTotal: subtotal + gstAmount,
+      savedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    await ref.update({
+      jobCard,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.json({ ok: true, jobCard });
+  } catch (error) {
+    console.error("Job card save error:", error);
+    res.status(500).json({ message: "Unable to save job card" });
+  }
+});
+
+// Unknown route
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found"
+  });
+});
+
+// Start server
+const port = process.env.PORT || 5000;
+
+app.listen(port, () => {
+  console.log(
+    `AUTO DIESEL WORKS backend running on http://localhost:${port}`
+  );
+});

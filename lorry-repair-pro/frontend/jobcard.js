@@ -1,23 +1,30 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-
-const app = initializeApp(APP_CONFIG.firebase);
-const auth = getAuth(app);
+const auth = getAuth(initializeApp(APP_CONFIG.firebase));
 const id = new URLSearchParams(location.search).get("id");
-
-async function load(user){
-  if(!id){ alert("Missing booking ID"); return; }
-  const token = await user.getIdToken();
-  const res = await fetch(`${APP_CONFIG.API_BASE_URL}/api/bookings/${encodeURIComponent(id)}`, {
-    headers:{Authorization:`Bearer ${token}`}
-  });
-  const out = await res.json();
-  if(!res.ok) throw new Error(out.message || "Unable to load booking");
-  const b=out.booking;
-  document.getElementById("jobNo").textContent = `JC-${String(b.id).slice(0,8).toUpperCase()}`;
-  document.getElementById("jobDate").textContent = new Date().toLocaleDateString("en-IN");
-  for(const [k,id2] of [["name","name"],["mobile","mobile"],["vehicleNo","vehicleNo"],["vehicleType","vehicleType"],["serviceType","serviceType"],["preferredDate","preferredDate"],["problem","problem"]]){
-    document.getElementById(id2).textContent=b[k]||"—";
-  }
+const billRows = document.getElementById("billRows");
+const money = value => `₹ ${Number(value || 0).toFixed(2)}`;
+let currentUser;
+function recalculate() { let subtotal = 0; [...billRows.querySelectorAll("tr")].forEach((row, index) => { row.querySelector(".line-no").textContent = index + 1; const amount = (Number(row.querySelector(".qty").value) || 0) * (Number(row.querySelector(".rate").value) || 0); row.querySelector(".amount").textContent = money(amount); subtotal += amount; }); const gst = Number(document.getElementById("gstRate").value) || 0; const gstAmount = subtotal * gst / 100; document.getElementById("subtotal").textContent = money(subtotal); document.getElementById("gstAmount").textContent = money(gstAmount); document.getElementById("grandTotal").textContent = money(subtotal + gstAmount); }
+function addRow(description = "", quantity = 1, rate = 0) { const row = document.createElement("tr"); row.innerHTML = `<td class="line-no"></td><td><input class="description" placeholder="Part or labour description"></td><td><input class="qty" type="number" min="0" value="${quantity}"></td><td><input class="rate" type="number" min="0" step="0.01" value="${rate}"></td><td class="amount">₹ 0.00</td><td class="no-print"><button class="remove-row" type="button">×</button></td>`; row.querySelector(".description").value = description; row.querySelectorAll("input").forEach(input => input.addEventListener("input", recalculate)); row.querySelector(".remove-row").onclick = () => { row.remove(); recalculate(); }; billRows.append(row); recalculate(); }
+document.getElementById("addRowBtn").onclick = () => addRow(); document.getElementById("gstRate").addEventListener("input", recalculate);
+async function saveJobCard() {
+  if (!currentUser || !id) return;
+  const button = document.getElementById("saveJobCardBtn");
+  button.disabled = true; button.textContent = "Saving...";
+  const items = [...billRows.querySelectorAll("tr")].map(row => ({ description: row.querySelector(".description").value.trim(), quantity: row.querySelector(".qty").value, rate: row.querySelector(".rate").value }));
+  try {
+    const token = await currentUser.getIdToken();
+    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/bookings/${encodeURIComponent(id)}/job-card`, { method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ items, gstRate: document.getElementById("gstRate").value }) });
+    const output = await response.json(); if (!response.ok) throw new Error(output.message || "Unable to save job card");
+    if (output.jobCard?.jobCardNo) {
+      document.getElementById("jobNo").textContent = output.jobCard.jobCardNo;
+      document.getElementById("jobDate").textContent = `${output.jobCard.jobCardDate} · ${output.jobCard.jobCardTime}`;
+    }
+    alert(`Job card saved successfully. Job Card No: ${output.jobCard?.jobCardNo || ""}`);
+  } catch (error) { alert(error.message); }
+  finally { button.disabled = false; button.textContent = "Save Job Card"; }
 }
-onAuthStateChanged(auth,user=>{if(user) load(user).catch(e=>alert(e.message)); else alert("Please login as admin.");});
+document.getElementById("saveJobCardBtn").onclick = saveJobCard;
+async function load(user) { if (!id) throw new Error("Missing booking reference"); const token = await user.getIdToken(); const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/bookings/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${token}` } }); const output = await response.json(); if (!response.ok) throw new Error(output.message || "Unable to load booking"); const b = output.booking; ["name", "mobile", "vehicleNo", "vehicleType", "problem"].forEach(key => document.getElementById(key).textContent = b[key] || "—"); const saved = b.jobCard; if (saved) { document.getElementById("jobNo").textContent = saved.jobCardNo || "Saved Job Card"; document.getElementById("jobDate").textContent = `${saved.jobCardDate || ""}${saved.jobCardTime ? ` · ${saved.jobCardTime}` : ""}`; document.getElementById("gstRate").value = saved.gstRate ?? 0; (saved.items || []).forEach(item => addRow(item.description, item.quantity, item.rate)); } else { document.getElementById("jobNo").textContent = "New Job Card"; document.getElementById("jobDate").textContent = "Save to generate Job Card No."; addRow("Inspection / diagnosis", 1, 0); } recalculate(); }
+onAuthStateChanged(auth, user => { if (user) { currentUser = user; load(user).catch(error => alert(error.message)); } else alert("Please login as admin first."); });

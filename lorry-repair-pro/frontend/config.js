@@ -2,13 +2,13 @@ window.APP_CONFIG = {
     API_BASE_URL: "http://localhost:5000",
 
     firebase: {
-        apiKey: "AIzaSyCwKEQXlyMJzBMK6Z535FJDKCZpzajOctA",
-        authDomain: "malligeswaranauto-diesel-works.firebaseapp.com",
-        projectId: "malligeswaranauto-diesel-works",
-        storageBucket: "malligeswaranauto-diesel-works.firebasestorage.app",
-        messagingSenderId: "262428888291",
-        appId: "1:262428888291:web:2ece33b99352912499c9d6",
-        measurementId: "G-E3WQRL04VV"
+        apiKey: "AIzaSyBaFSDDPG82r-ZBWhBUqjxzmVmJz2O8GAY",
+        authDomain: "malligeswaranautodieselw-659ba.firebaseapp.com",
+        projectId: "malligeswaranautodieselw-659ba",
+        storageBucket: "malligeswaranautodieselw-659ba.firebasestorage.app",
+        messagingSenderId: "644245834520",
+        appId: "1:644245834520:web:ba2c8ce33c494af470ec6d",
+        measurementId: "G-NHFWJ8DYX8"
     }
 };
     

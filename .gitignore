@@ -11,3 +11,4 @@ firebase-service-account*.json
 Thumbs.db
 
 npm-debug.log*
+serviceAccountKey.json

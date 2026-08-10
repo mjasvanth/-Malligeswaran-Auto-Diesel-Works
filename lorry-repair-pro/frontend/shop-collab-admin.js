@@ -1,0 +1,8 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+const auth = getAuth(initializeApp(APP_CONFIG.firebase)); const rows = document.getElementById("collabRows");
+const esc = value => String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
+const date = value => { const seconds = value?.seconds ?? value?._seconds; return seconds ? new Date(seconds * 1000).toLocaleDateString("en-IN") : "Just now"; };
+async function loadCollabs(user) { const token = await user.getIdToken(); const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/shop-collaborations`, { headers: { Authorization: `Bearer ${token}` } }); const output = await response.json(); if (!response.ok) throw new Error(output.message || "Unable to load requests"); rows.innerHTML = output.collaborations.map(c => `<tr><td><b>${esc(c.shopName)}</b></td><td>${esc(c.contactName)}<br><small>${esc(c.mobile)}</small><br><small>${esc(c.email || "-")}</small></td><td>${esc(c.location)}</td><td>${esc(c.services || "-")}</td><td>${date(c.createdAt)}</td></tr>`).join("") || `<tr><td colspan="5">No collaboration requests yet.</td></tr>`; }
+onAuthStateChanged(auth, user => { if (!user) return; document.getElementById("collabLogin").classList.add("hide"); document.getElementById("collabContent").classList.remove("hide"); loadCollabs(user).catch(error => alert(error.message)); });
+document.getElementById("refreshCollabs").onclick = () => { if (auth.currentUser) loadCollabs(auth.currentUser).catch(error => alert(error.message)); };
