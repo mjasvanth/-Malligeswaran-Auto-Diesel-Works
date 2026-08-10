@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LorryCare Pro | Lorry Repair & Service</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<body>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="index.html"><span>🚛</span> LorryCare <b>PRO</b></a>
+    <nav>
+      <a href="#services">Services</a>
+      <a href="#booking">Book Service</a>
+      <a href="#why-us">Why Us</a>
+      <a href="admin.html" class="admin-link">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">HEAVY VEHICLE SERVICE & REPAIR</span>
+        <h1>Keep your lorry moving.<br><span>We handle the rest.</span></h1>
+        <p>Professional inspection, preventive maintenance, electrical, engine, brake and roadside support for commercial vehicles.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#booking">Book a Service</a>
+          <a class="btn secondary" href="#services">View Services</a>
+        </div>
+        <div class="trust-row">
+          <div><strong>24/7</strong><small>Support</small></div>
+          <div><strong>Pro</strong><small>Technicians</small></div>
+          <div><strong>OEM</strong><small>Quality Parts</small></div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="truck-icon">🚛</div>
+        <h3>Complete Lorry Care</h3>
+        <p>From breakdown diagnosis to scheduled service and delivery inspection.</p>
+        <ul>
+          <li>Engine & transmission</li>
+          <li>Brake & suspension</li>
+          <li>Auto electrical & AC</li>
+          <li>Periodic maintenance</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">OUR SERVICES</span>
+        <h2>One workshop for every heavy-vehicle need</h2>
+      </div>
+      <div class="service-grid">
+        <article class="service-card"><span>🔧</span><h3>Engine Repair</h3><p>Diagnostics, overhaul, cooling and lubrication systems.</p></article>
+        <article class="service-card"><span>⚡</span><h3>Auto Electrical</h3><p>Starting, charging, wiring, ECU and lighting faults.</p></article>
+        <article class="service-card"><span>🛑</span><h3>Brake & Suspension</h3><p>Brake inspection, air systems, suspension and steering.</p></article>
+        <article class="service-card"><span>❄️</span><h3>AC Service</h3><p>Heavy-vehicle AC diagnosis, leak check and service.</p></article>
+        <article class="service-card"><span>🛞</span><h3>Tyre & Wheel</h3><p>Tyre inspection, rotation, wheel and alignment support.</p></article>
+        <article class="service-card"><span>🧰</span><h3>Preventive Service</h3><p>Scheduled maintenance to reduce downtime and breakdowns.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="booking" class="section booking-section">
+    <div class="container booking-grid">
+      <div>
+        <span class="eyebrow">SERVICE BOOKING</span>
+        <h2>Book your lorry service</h2>
+        <p>Submit the vehicle details. Our service team can review the request and create a professional job card from the admin panel.</p>
+        <div class="info-box"><b>Tip:</b> Enter the vehicle number exactly as shown on the registration certificate.</div>
+      </div>
+
+      <form id="bookingForm" class="form-card">
+        <div class="form-grid">
+          <label>Customer Name<input name="name" required></label>
+          <label>Mobile Number<input name="mobile" inputmode="tel" required></label>
+          <label>Vehicle Number<input name="vehicleNo" required placeholder="TN XX XX 0000"></label>
+          <label>Vehicle Type
+            <select name="vehicleType" required>
+              <option value="">Select</option>
+              <option>Lorry</option><option>Trailer</option><option>Tipper</option><option>Bus</option><option>Other Heavy Vehicle</option>
+            </select>
+          </label>
+          <label>Preferred Date<input type="date" name="preferredDate"></label>
+          <label>Service Type
+            <select name="serviceType" required>
+              <option value="">Select</option>
+              <option>General Service</option><option>Engine Repair</option><option>Electrical</option><option>Brake & Suspension</option><option>AC Service</option><option>Breakdown Repair</option><option>Other</option>
+            </select>
+          </label>
+          <label class="full">Problem / Complaint<textarea name="problem" rows="4" placeholder="Describe the issue"></textarea></label>
+        </div>
+        <button class="btn primary full" type="submit">Submit Service Request</button>
+        <p id="bookingMessage" class="message"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="why-us" class="section light">
+    <div class="container stats">
+      <div><strong>01</strong><h3>Inspect</h3><p>Vehicle complaint and condition are recorded.</p></div>
+      <div><strong>02</strong><h3>Estimate</h3><p>Required work and parts are documented.</p></div>
+      <div><strong>03</strong><h3>Repair</h3><p>Technicians complete the approved work.</p></div>
+      <div><strong>04</strong><h3>Deliver</h3><p>Final inspection and job-card closure.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="container">© 2026 LorryCare Pro · Lorry Repair & Service</div></footer>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

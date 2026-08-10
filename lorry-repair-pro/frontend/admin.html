@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LorryCare Pro | Admin</title><link rel="stylesheet" href="style.css">
+<style>
+.admin-wrap{padding:55px 0}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}
+.admin-card{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:22px;box-shadow:0 8px 25px rgba(16,24,39,.05)}
+table{width:100%;border-collapse:collapse}th,td{padding:12px;border-bottom:1px solid #e9edf3;text-align:left;font-size:14px}th{background:#f6f8fb}
+.badge{padding:5px 9px;border-radius:999px;background:#edf4ff;color:#1769c2;font-weight:700}.hide{display:none}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="container nav"><a class="brand" href="index.html">🚛 LorryCare <b>PRO</b></a><nav><a href="index.html">Website</a><button id="logoutBtn" class="btn secondary">Logout</button></nav></div></header>
+<main class="admin-wrap"><div class="container">
+<div class="admin-top"><div><span class="eyebrow">WORKSHOP CONTROL PANEL</span><h2>Service Bookings</h2></div><button id="refreshBtn" class="btn primary">Refresh</button></div>
+<div id="loginBox" class="admin-card">Admin authentication required.</div>
+<div id="adminContent" class="admin-card hide">
+<table><thead><tr><th>Reference</th><th>Customer</th><th>Vehicle</th><th>Service</th><th>Date</th><th>Status</th><th></th></tr></thead>
+<tbody id="bookingRows"></tbody></table>
+</div>
+</div></main>
+<script type="module" src="admin.js"></script>
+</body>
+</html>

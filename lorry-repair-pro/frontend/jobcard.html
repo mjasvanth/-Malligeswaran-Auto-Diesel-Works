@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Professional Job Card</title><link rel="stylesheet" href="jobcard.css">
+</head>
+<body>
+<div class="toolbar"><button onclick="history.back()">← Back</button><button onclick="window.print()">🖨 Print Job Card</button></div>
+<main class="jobcard" id="jobcard">
+<header class="jc-head">
+  <div><div class="logo">🚛 LORRYCARE <span>PRO</span></div><p>Heavy Vehicle Repair & Service</p></div>
+  <div class="meta"><b>JOB CARD</b><strong id="jobNo">—</strong><small id="jobDate">—</small></div>
+</header>
+<section class="section-title">CUSTOMER & VEHICLE DETAILS</section>
+<div class="grid">
+  <div><label>Customer Name</label><strong id="name">—</strong></div>
+  <div><label>Mobile</label><strong id="mobile">—</strong></div>
+  <div><label>Vehicle Number</label><strong id="vehicleNo">—</strong></div>
+  <div><label>Vehicle Type</label><strong id="vehicleType">—</strong></div>
+</div>
+<section class="section-title">SERVICE REQUEST</section>
+<div class="grid">
+  <div><label>Service Type</label><strong id="serviceType">—</strong></div>
+  <div><label>Preferred Date</label><strong id="preferredDate">—</strong></div>
+  <div class="wide"><label>Customer Complaint</label><p id="problem">—</p></div>
+</div>
+<section class="section-title">INSPECTION & WORK DETAILS</section>
+<table><thead><tr><th>#</th><th>Description of Work / Part</th><th>Qty</th><th>Technician</th><th>Amount</th></tr></thead>
+<tbody id="workRows"><tr><td>1</td><td>Inspection / diagnosis</td><td>1</td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td></tr></tbody></table>
+<div class="totals"><div><span>Labour</span><b>₹ __________</b></div><div><span>Parts</span><b>₹ __________</b></div><div><span>Other</span><b>₹ __________</b></div><div class="grand"><span>Estimated / Final Total</span><b>₹ __________</b></div></div>
+<section class="section-title">CUSTOMER APPROVAL</section>
+<p class="terms">I authorize the workshop to inspect and perform the approved work. Additional repairs/parts should be communicated before major work where applicable.</p>
+<div class="signatures"><div>Customer Signature<br><span></span></div><div>Service Advisor<br><span></span></div><div>Technician<br><span></span></div></div>
+<footer>Thank you for choosing LorryCare Pro · Keep this job card for service records.</footer>
+</main>
+<script type="module" src="jobcard.js"></script>
+</body>
+</html>
