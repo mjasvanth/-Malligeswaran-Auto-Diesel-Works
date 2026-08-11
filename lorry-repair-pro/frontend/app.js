@@ -2,14 +2,6 @@ const form = document.getElementById("bookingForm");
 const msg = document.getElementById("bookingMessage");
 const confirmation = document.getElementById("bookingConfirmation");
 
-const formGrid = form?.querySelector(".form-grid");
-if (formGrid && !formGrid.querySelector("[name=lastServiceDate]")) {
-  const historyFields = document.createElement("div");
-  historyFields.className = "service-history-fields full";
-  historyFields.innerHTML = `<label>Last Service Date (optional)<input type="date" name="lastServiceDate"></label><label>Last Service Details (optional)<input name="lastServiceType" maxlength="120" placeholder="Example: Engine oil and filter change"></label>`;
-  formGrid.append(historyFields);
-}
-
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   msg.textContent = "Submitting service request...";

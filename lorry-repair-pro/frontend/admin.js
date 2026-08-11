@@ -25,12 +25,11 @@ function renderBookings(list) {
       <td>${escapeHtml(b.name || "")}<br><small>${escapeHtml(b.mobile || "")}</small><br><small>${escapeHtml(b.email || "")}</small></td>
       <td>${escapeHtml(b.vehicleNo || "")}<br><small>${escapeHtml(b.vehicleType || "")}</small></td>
       <td>${escapeHtml(b.serviceType || "")}</td>
-      <td>${escapeHtml(b.lastServiceDate || "No previous date")}<br><small>${escapeHtml(b.lastServiceType || "No previous service details")}</small></td>
       <td>${escapeHtml(b.problem || "-")}</td>
       <td>${formatBookingDate(b.createdAt)}</td>
       <td><span class="badge">${escapeHtml(b.status || "Pending")}</span></td>
       <td><button class="btn primary" onclick="openJobCard('${b.id}')">Job Card</button></td>
-    </tr>`).join("") || `<tr><td colspan="9">No matching bookings found.</td></tr>`;
+    </tr>`).join("") || `<tr><td colspan="8">No matching bookings found.</td></tr>`;
 }
 
 async function loadBookings(user) {
@@ -81,3 +80,9 @@ document.getElementById("refreshBtn").onclick = () => {
 };
 logoutBtn.onclick = () => signOut(auth);
 bookingSearch?.addEventListener("input", filterBookings);
+
+// Keep the admin list current while it is open.
+setInterval(() => {
+  const user = auth.currentUser;
+  if (user) loadBookings(user).catch(() => {});
+}, 15000);
