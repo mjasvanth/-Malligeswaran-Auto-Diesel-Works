@@ -36,3 +36,12 @@ The backend uses:
 - Job cards can be extended into a `jobCards` collection when you want technician/parts/labour/invoice workflow.
 
 Do not expose Firebase Admin credentials in frontend code.
+
+## Deploying the backend (Render)
+
+1. Create a new **Web Service** from this GitHub repository.
+2. Set **Root Directory** to `lorry-repair-pro/backend`, **Build Command** to `npm install`, and **Start Command** to `npm start`.
+3. Add environment variables:
+   - `FIREBASE_SERVICE_ACCOUNT`: the complete JSON from your Firebase Admin service-account key (keep it secret).
+   - `FRONTEND_ORIGIN`: your Vercel website URL, for example `https://your-site.vercel.app`.
+4. After Render gives you a public URL, place it in `frontend/config.js` as `API_BASE_URL`, then redeploy the frontend.

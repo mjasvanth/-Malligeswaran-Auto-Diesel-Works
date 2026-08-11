@@ -6,8 +6,16 @@ import admin from "firebase-admin";
 dotenv.config();
 
 // Firebase Admin SDK
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+  : null;
+
 admin.initializeApp({
-  credential: admin.credential.applicationDefault()
+  // Local development can use GOOGLE_APPLICATION_CREDENTIALS. In cloud hosts,
+  // store the service-account JSON in the FIREBASE_SERVICE_ACCOUNT secret.
+  credential: serviceAccount
+    ? admin.credential.cert(serviceAccount)
+    : admin.credential.applicationDefault()
 });
 
 const db = admin.firestore();
