@@ -34,6 +34,20 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 
+async function customerIdentity(req, res, next) {
+  const header = req.headers.authorization || "";
+  if (!header.startsWith("Bearer ")) return next();
+  try { req.customer = await auth.verifyIdToken(header.slice(7)); next(); }
+  catch { return res.status(401).json({ message: "Your login session has expired. Please login again." }); }
+}
+
+async function requireCustomer(req, res, next) {
+  const header = req.headers.authorization || "";
+  if (!header.startsWith("Bearer ")) return res.status(401).json({ message: "Please login to check your service status." });
+  try { req.customer = await auth.verifyIdToken(header.slice(7)); next(); }
+  catch { return res.status(401).json({ message: "Your login session has expired. Please login again." }); }
+}
+
 // Clean input
 function clean(value, max = 500) {
   return String(value ?? "")
@@ -100,7 +114,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Create booking
-app.post("/api/bookings", async (req, res) => {
+app.post("/api/bookings", customerIdentity, async (req, res) => {
   try {
     const meta = bookingMeta();
     const booking = {
@@ -116,6 +130,8 @@ app.post("/api/bookings", async (req, res) => {
       lastServiceType: clean(req.body.lastServiceType, 120),
       serviceType: clean(req.body.serviceType, 80),
       problem: clean(req.body.problem, 1000),
+      customerUid: req.customer?.uid || "",
+      customerEmail: req.customer?.email || "",
 
       status: "Pending",
 
@@ -155,6 +171,23 @@ app.post("/api/bookings", async (req, res) => {
     res.status(500).json({
       message: "Unable to create booking"
     });
+  }
+});
+
+app.get("/api/customer-bookings/:reference", requireCustomer, async (req, res) => {
+  try {
+    const reference = clean(req.params.reference, 100).toUpperCase();
+    if (!reference) return res.status(400).json({ message: "Enter your booking reference number." });
+    const snapshot = await db.collection("bookings").where("bookingReference", "==", reference).limit(1).get();
+    if (snapshot.empty) return res.status(404).json({ message: "Booking reference not found." });
+    const booking = snapshot.docs[0].data();
+    const bookedEmail = String(booking.email || "").trim().toLowerCase();
+    const accountEmail = String(req.customer.email || "").trim().toLowerCase();
+    if (booking.customerUid !== req.customer.uid && (!bookedEmail || bookedEmail !== accountEmail)) return res.status(403).json({ message: "This reference is not linked to your customer account." });
+    res.json({ booking: { bookingReference: booking.bookingReference, vehicleNo: booking.vehicleNo, vehicleType: booking.vehicleType, serviceType: booking.serviceType, status: booking.status || "Pending", bookingDate: booking.bookingDate, bookingTime: booking.bookingTime } });
+  } catch (error) {
+    console.error("Customer status lookup error:", error);
+    res.status(500).json({ message: "Unable to load service status." });
   }
 });
 
@@ -332,6 +365,11 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
     const previousJobCard = booking.data().jobCard || {};
+    const allowedStatuses = ["Pending", "Inspection", "Approved", "In Progress", "Ready", "Delivered", "Cancelled"];
+    const status = clean(req.body.status, 30);
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid job card status" });
+    }
     const meta = previousJobCard.jobCardNo ? {
       jobCardNo: previousJobCard.jobCardNo,
       jobCardDate: previousJobCard.jobCardDate,
@@ -349,6 +387,7 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
 
     await ref.update({
       jobCard,
+      status,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 

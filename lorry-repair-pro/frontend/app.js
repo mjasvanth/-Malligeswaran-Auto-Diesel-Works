@@ -2,6 +2,11 @@ const form = document.getElementById("bookingForm");
 const msg = document.getElementById("bookingMessage");
 const confirmation = document.getElementById("bookingConfirmation");
 
+const selectedService = new URLSearchParams(location.search).get("service");
+if (selectedService && form?.elements.serviceType) {
+  form.elements.serviceType.value = selectedService;
+}
+
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   msg.textContent = "Submitting service request...";
