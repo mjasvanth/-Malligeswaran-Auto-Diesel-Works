@@ -1,2 +1,102 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Job Card | Malligeswaran Auto Diesel Works</title><link rel="stylesheet" href="jobcard.css"></head><body>
-<div class="toolbar"><button onclick="history.back()">← Back</button><button id="saveJobCardBtn">Save Job Card</button><button onclick="window.print()">🖨 Print Job Card</button></div><main class="jobcard"><header class="jc-head"><div><div class="logo">🚛 MALLIGESWARAN <span>AUTO DIESEL</span></div><p>Ashok Leyland Heavy Vehicle Specialist · 25 Years Experience</p></div><div class="meta"><b>JOB CARD</b><strong id="jobNo">—</strong><small id="jobDate">—</small></div></header><section class="section-title">CUSTOMER & VEHICLE DETAILS</section><div class="grid"><div><label>Customer Name</label><strong id="name">—</strong></div><div><label>Mobile</label><strong id="mobile">—</strong></div><div><label>Vehicle Number</label><strong id="vehicleNo">—</strong></div><div><label>Vehicle Type</label><strong id="vehicleType">—</strong></div></div><section class="section-title">JOB CARD STATUS</section><div class="status-row"><label for="jobStatus">Service status</label><select id="jobStatus"><option>Pending</option><option>Inspection</option><option>Approved</option><option>In Progress</option><option>Ready</option><option>Delivered</option><option>Cancelled</option></select><small>Status is saved with the Job Card.</small></div><section class="section-title">CUSTOMER PROBLEM / COMPLAINT</section><div class="complaint" id="problem">—</div><section class="section-title">SPARE PARTS & LABOUR BILL</section><table><thead><tr><th>#</th><th>Description / Spare Part</th><th>Qty</th><th>Rate (₹)</th><th>Amount (₹)</th><th class="no-print"></th></tr></thead><tbody id="billRows"></tbody></table><button id="addRowBtn" class="add-row no-print" type="button">+ Add item</button><div class="totals"><div><span>Parts & labour subtotal</span><b id="subtotal">₹ 0.00</b></div><div><span>GST (%)</span><input id="gstRate" type="number" min="0" value="0"><b id="gstAmount">₹ 0.00</b></div><div class="grand"><span>Grand Total</span><b id="grandTotal">₹ 0.00</b></div></div><section class="section-title">APPROVAL</section><p class="terms">I authorize the workshop to carry out the approved work. Additional repairs and spare parts will be communicated before major work.</p><div class="signatures"><div>Customer Signature<span></span></div><div>Service Advisor<span></span></div><div>Owner — Kumar<span></span></div></div><footer>Contact: 8667379791 · 9003447322 · malligeswaranautodieselworks@gmail.com<br>Founder: Jasvanth M, BE.EEE</footer></main><script src="config.js"></script><script type="module" src="jobcard.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Job Card | Malligeswaran Auto Diesel Works</title>
+    <link rel="stylesheet" href="jobcard.css" />
+  </head>
+  <body>
+    <div class="toolbar">
+      <button onclick="history.back()">← Back</button
+      ><button id="saveJobCardBtn">Save Job Card</button
+      ><button onclick="window.print()">🖨 Print Job Card</button>
+    </div>
+    <main class="jobcard">
+      <header class="jc-head">
+        <div>
+          <div class="logo">🚛 MALLIGESWARAN <span>AUTO DIESEL</span></div>
+          <p>Ashok Leyland Heavy Vehicle Specialist · 25 Years Experience</p>
+        </div>
+        <div class="meta">
+          <b>JOB CARD</b><strong id="jobNo">—</strong
+          ><small id="jobDate">—</small>
+        </div>
+      </header>
+      <section class="section-title">CUSTOMER & VEHICLE DETAILS</section>
+      <div class="grid">
+        <div><label>Customer Name</label><strong id="name">—</strong></div>
+        <div><label>Mobile</label><strong id="mobile">—</strong></div>
+        <div>
+          <label>Vehicle Number</label><strong id="vehicleNo">—</strong>
+        </div>
+        <div>
+          <label>Vehicle Type</label><strong id="vehicleType">—</strong>
+        </div>
+      </div>
+      <section class="section-title">JOB CARD STATUS</section>
+      <div class="status-row">
+        <label for="jobStatus">Service status</label
+        ><select id="jobStatus">
+          <option>Pending</option>
+          <option>Inspection</option>
+          <option>Approved</option>
+          <option>In Progress</option>
+          <option>Ready</option>
+          <option>Delivered</option>
+          <option>Cancelled</option></select
+        ><small>Status is saved with the Job Card.</small>
+      </div>
+      <section class="section-title">CUSTOMER PROBLEM / COMPLAINT</section>
+      <div class="complaint" id="problem">—</div>
+      <section class="section-title">SPARE PARTS & LABOUR BILL</section>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Description / Spare Part</th>
+            <th>Qty</th>
+            <th>Rate (₹)</th>
+            <th>Amount (₹)</th>
+            <th class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="billRows"></tbody>
+      </table>
+      <button id="addRowBtn" class="add-row no-print" type="button">
+        + Add item
+      </button>
+      <div class="totals">
+        <div>
+          <span>Parts & labour subtotal</span><b id="subtotal">₹ 0.00</b>
+        </div>
+        <div>
+          <span>GST (%)</span
+          ><input id="gstRate" type="number" min="0" value="0" /><b
+            id="gstAmount"
+            >₹ 0.00</b
+          >
+        </div>
+        <div class="grand">
+          <span>Grand Total</span><b id="grandTotal">₹ 0.00</b>
+        </div>
+      </div>
+      <section class="section-title">APPROVAL</section>
+      <p class="terms">
+        I authorize the workshop to carry out the approved work. Additional
+        repairs and spare parts will be communicated before major work.
+      </p>
+      <div class="signatures">
+        <div>Customer Signature<span></span></div>
+        <div>Service Advisor<span></span></div>
+        <div>Owner — Kumar<span></span></div>
+      </div>
+      <footer>
+        Contact: 8667379791 · 9003447322 ·
+        malligeswaranautodieselworks@gmail.com<br />Founder: Jasvanth M, BE.EEE
+      </footer>
+    </main>
+    <script src="config.js"></script>
+    <script type="module" src="jobcard.js"></script>
+  </body>
+</html>
