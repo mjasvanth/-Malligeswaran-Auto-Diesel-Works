@@ -174,6 +174,22 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
   }
 });
 
+// Get all bookings for the logged-in customer
+app.get("/api/customer/my-bookings", requireCustomer, async (req, res) => {
+  try {
+    const snapshot = await db.collection("bookings")
+      .where("customerUid", "==", req.customer.uid)
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ bookings });
+  } catch (error) {
+    console.error("Customer booking history error:", error);
+    res.status(500).json({ message: "Unable to load your booking history." });
+  }
+});
+
 app.get("/api/customer-bookings/:reference", requireCustomer, async (req, res) => {
   try {
     const reference = clean(req.params.reference, 100).toUpperCase();
@@ -250,6 +266,28 @@ app.get("/api/shop-collaborations", requireAdmin, async (req, res) => {
   } catch (error) {
     console.error("Load collaborations error:", error);
     res.status(500).json({ message: "Unable to load collaboration requests" });
+  }
+});
+
+// Delete all bookings - Admin only
+app.delete("/api/bookings/all", requireAdmin, async (req, res) => {
+  try {
+    const snapshot = await db.collection("bookings").limit(500).get(); // Firestore batch limit is 500
+    if (snapshot.empty) {
+      return res.json({ ok: true, message: "No bookings to delete." });
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    console.log(`Deleted ${snapshot.size} bookings.`);
+    res.json({ ok: true, message: `Successfully deleted ${snapshot.size} bookings.` });
+  } catch (error) {
+    console.error("Delete all bookings error:", error);
+    res.status(500).json({ message: "Unable to delete bookings." });
   }
 });
 

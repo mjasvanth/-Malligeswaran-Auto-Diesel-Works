@@ -10,8 +10,8 @@ const loginForm = document.getElementById("loginForm");
 const loginMessage = document.getElementById("loginMessage");
 const logoutBtn = document.getElementById("logoutBtn");
 const bookingSearch = document.getElementById("bookingSearch");
+const deleteAllBtn = document.getElementById("deleteAllBtn");
 let bookings = [];
-const statusOptions = ["Pending", "Inspection", "Approved", "In Progress", "Ready", "Delivered", "Cancelled"];
 
 function formatBookingDate(value) {
   const seconds = value?.seconds ?? value?._seconds;
@@ -27,8 +27,7 @@ function renderBookings(list) {
       <td>${escapeHtml(b.vehicleNo || "")}<br><small>${escapeHtml(b.vehicleType || "")}</small></td>
       <td>${escapeHtml(b.serviceType || "")}</td>
       <td>${escapeHtml(b.problem || "-")}</td>
-      <td>${formatBookingDate(b.createdAt)}</td>
-      <td><select class="status-select" onchange="changeBookingStatus('${b.id}', this.value)">${statusOptions.map(status => `<option value="${status}"${status === (b.status || "Pending") ? " selected" : ""}>${status}</option>`).join("")}</select></td>
+      <td>${escapeHtml(b.status || "Pending")}</td>
       <td><button class="btn primary" onclick="openJobCard('${b.id}')">Job Card</button></td>
     </tr>`).join("") || `<tr><td colspan="8">No matching bookings found.</td></tr>`;
 }
@@ -51,25 +50,6 @@ function filterBookings() {
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 window.openJobCard = id => location.href = `jobcard.html?id=${encodeURIComponent(id)}`;
-window.changeBookingStatus = async (id, status) => {
-  const user = auth.currentUser;
-  if (!user) return;
-  try {
-    const token = await user.getIdToken();
-    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/bookings/${encodeURIComponent(id)}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status })
-    });
-    const output = await response.json();
-    if (!response.ok) throw new Error(output.message || "Unable to update status");
-    const booking = bookings.find(item => item.id === id);
-    if (booking) booking.status = status;
-  } catch (error) {
-    alert(error.message);
-    loadBookings(user).catch(() => {});
-  }
-};
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -99,6 +79,29 @@ document.getElementById("refreshBtn").onclick = () => {
   if (user) loadBookings(user).catch(e => alert(e.message));
 };
 logoutBtn.onclick = () => signOut(auth);
+
+deleteAllBtn.onclick = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  if (!confirm("WARNING: This will permanently delete ALL bookings. Are you absolutely sure?")) {
+    return;
+  }
+
+  try {
+    const token = await user.getIdToken();
+    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/api/bookings/all`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Failed to delete bookings.");
+    await loadBookings(user);
+    alert("All bookings have been deleted successfully.");
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
 bookingSearch?.addEventListener("input", filterBookings);
 
 // Keep the admin list current while it is open.

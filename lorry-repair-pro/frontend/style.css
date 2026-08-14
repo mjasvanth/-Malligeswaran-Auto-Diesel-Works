@@ -14,3 +14,66 @@ a{text-decoration:none;color:inherit}.container{width:min(1120px,92%);margin:aut
 @media(max-width:520px){.service-grid,.stats,.form-grid{grid-template-columns:1fr}.hero{padding:55px 0}.hero h1{font-size:42px}.section{padding:55px 0}}
 
 .brand-logo{width:54px;height:54px;object-fit:contain;border-radius:50%;background:#fff;padding:2px;margin-left:0;margin-right:22px;flex:0 0 auto}.company-logo{display:block;width:min(100%,310px);max-height:300px;object-fit:contain;margin:0 auto 15px}.brand-showcase{text-align:center;padding:22px}.nav .brand{white-space:nowrap}.nav .brand b{font-size:inherit;margin-left:6px}.nav nav{margin-left:auto}@media(max-width:800px){.brand-logo{width:45px;height:45px;margin-left:0;margin-right:16px}.company-logo{max-width:260px;max-height:260px}}.hero{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(circle at 82% 30%,rgba(8,124,245,.38),transparent 27%),radial-gradient(circle at 10% 92%,rgba(230,57,70,.2),transparent 30%),linear-gradient(135deg,#070d18,#102542 58%,#07111e)}.hero:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.28;background:repeating-linear-gradient(115deg,transparent 0 78px,rgba(255,255,255,.055) 79px 80px)}.hero-card{border:1px solid rgba(112,177,255,.36);background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(225,239,255,.94));box-shadow:0 28px 65px rgba(0,0,0,.35)}.company-logo{filter:drop-shadow(0 16px 18px rgba(0,0,0,.22))}.service-card{position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}.service-card:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#087cf5,#58acff,#e63946)}.service-card:hover{transform:translateY(-6px);box-shadow:0 20px 38px rgba(16,24,39,.16)}
+/* --- Cinematic Parallax Section --- */
+.parallax-section {
+  /* Find a high-quality background image */
+  background-image: url('assets/workshop-background.jpg');
+
+  /* Set a specific height */
+  min-height: 400px;
+
+  /* This creates the parallax scrolling effect */
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  /* For the content inside */
+  position: relative;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+/* Dark overlay for text readability */
+.parallax-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+/* Ensure content is above the overlay */
+.parallax-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+}
+
+.parallax-content h2 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+}
+
+.parallax-content p {
+  font-size: 1.2rem;
+}
+
+/* --- Animated Card Hover Effect --- */
+.animated-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.animated-card:hover {
+  transform: translateY(-10px); /* Lifts the card up */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Adds a pronounced shadow */
+}
