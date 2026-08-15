@@ -49,17 +49,14 @@
               <div><strong>OEM</strong><small>Quality parts</small></div>
             </div>
           </div>
-          <div class="hero-card brand-showcase">
+          <div class="hero-card quick-care-card">
+            <span class="hero-logo-kicker">MALLIGESWARAN AUTO DIESEL WORKS</span>
             <img
-              class="company-logo"
-              src="assets/malligeswaran-logo.png.png"
+              class="hero-logo-cinematic"
+              src="assets/malligeswaran-logo-transparent.png"
               alt="Malligeswaran Auto Diesel Works"
             />
-            <div class="truck-icon">🚛</div>
-            <h3>Complete Lorry Care</h3>
-            <p>
-              Engine, brake, suspension, electrical and periodic maintenance.
-            </p>
+            <span class="hero-logo-caption">Ashok Leyland Heavy Vehicle Specialist</span>
           </div>
         </div>
       </section>
@@ -72,6 +69,28 @@
               Submit your vehicle details. Our team will contact you after
               reviewing the booking.
             </p>
+            <div class="booking-benefits" aria-label="Service booking process">
+              <div class="booking-benefit">
+                <span class="benefit-number">01</span>
+                <div><strong>Share the issue</strong><small>Tell us your vehicle number and the problem you are facing.</small></div>
+              </div>
+              <div class="booking-benefit">
+                <span class="benefit-number">02</span>
+                <div><strong>Get a call back</strong><small>Our workshop team reviews the request and confirms the visit.</small></div>
+              </div>
+              <div class="booking-benefit">
+                <span class="benefit-number">03</span>
+                <div><strong>Drive in with confidence</strong><small>Get the right inspection, repair and service support for your lorry.</small></div>
+              </div>
+            </div>
+            <aside class="booking-help-card">
+              <span class="help-icon" aria-hidden="true">24/7</span>
+              <div>
+                <strong>Need urgent workshop support?</strong>
+                <small>Call our service team directly for quick assistance.</small>
+              </div>
+              <a href="tel:8667379791">Call now</a>
+            </aside>
           </div>
           <form id="bookingForm" class="form-card">
             <div class="form-grid">
@@ -117,6 +136,24 @@
                   rows="4"
                 ></textarea>
               </label>
+              <label class="full vehicle-photo-field"
+                >Vehicle Front View Image *
+                <div class="camera-actions">
+                  <select id="vehicleCameraFacing" aria-label="Choose camera">
+                    <option value="environment">Back camera</option>
+                    <option value="user">Front camera</option>
+                  </select>
+                  <button id="openVehicleCamera" class="btn camera-btn" type="button">Open live camera</button>
+                  <span>or choose an existing image</span>
+                </div>
+                <input id="vehicleFrontImage" name="vehicleFrontImage" type="file" accept="image/*" capture="environment" />
+                <small>Take a clear photo of the front side of your vehicle.</small>
+                <div id="vehicleCameraPanel" class="vehicle-camera-panel" hidden>
+                  <video id="vehicleCameraPreview" autoplay playsinline muted></video>
+                  <div class="camera-controls"><button id="captureVehiclePhoto" class="btn primary" type="button">Take photo</button><button id="closeVehicleCamera" class="btn camera-close-btn" type="button">Close camera</button></div>
+                </div>
+                <img id="vehiclePhotoPreview" class="vehicle-photo-preview" alt="Vehicle front view preview" hidden />
+              </label>
             </div>
             <button class="btn primary full" type="submit">
               Submit Service Request
@@ -130,23 +167,44 @@
           </form>
         </div>
       </section>
+      <section class="section light" id="workshop-capabilities">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">MECHANICAL EXPERTISE</span>
+            <h2>Built for every kilometre your lorry travels</h2>
+            <p>From a small warning sound to a complete overhaul, our workshop checks the systems that keep your vehicle safe, powerful and reliable.</p>
+          </div>
+          <div class="service-grid">
+            <article class="service-card"><img class="mechanical-card-image" src="assets/engine.png" alt="Heavy vehicle engine service" /><h3>Engine & Fuel System</h3><p>Overhaul support, injector checks, turbo inspection, cooling and lubrication work.</p></article>
+            <article class="service-card"><img class="mechanical-card-image" src="assets/break.png" alt="Heavy vehicle brake service" /><h3>Air Brake Safety</h3><p>Air leaks, compressors, chambers, valves, brake adjustment and safety inspection.</p></article>
+            <article class="service-card"><img class="mechanical-card-image" src="assets/ecu.png" alt="Heavy vehicle ECU diagnostics" /><h3>Electrical Diagnostics</h3><p>Battery, starter, alternator, wiring, sensors, lighting and fault finding.</p></article>
+            <article class="service-card"><img class="mechanical-card-image" src="assets/gear.png" alt="Heavy vehicle gearbox service" /><h3>Clutch & Gearbox</h3><p>Clutch wear checks, gear-shift issues and drivetrain diagnosis for smooth pulling power.</p></article>
+            <article class="service-card"><img class="mechanical-card-image" src="assets/wheel.png" alt="Heavy vehicle steering and suspension service" /><h3>Steering & Suspension</h3><p>Leaf springs, bushes, steering play, wheel alignment and load-handling checks.</p></article>
+            <article class="service-card"><img class="mechanical-card-image" src="assets/care.png" alt="Heavy vehicle preventive maintenance" /><h3>Preventive Maintenance</h3><p>Regular oil, filter and inspection schedules designed to reduce roadside breakdowns.</p></article>
+          </div>
+        </div>
+      </section>
       <section class="section light" id="contact">
         <div class="container contact-card">
           <span class="eyebrow">CONTACT & LOCATION</span>
           <h2>Visit or call our workshop</h2>
           <div class="contact-list">
-            <a class="btn primary" href="tel:8667379791">Call 8667379791</a
-            ><a class="btn secondary contact-alt" href="tel:9003447322"
-              >Call 9003447322</a
+            <a class="btn secondary contact-alt contact-action" href="tel:8667379791"><img src="assets/phone.png" alt="" />Call 8667379791</a
+            ><a class="btn secondary contact-alt contact-action" href="tel:9003447322"
+              ><img src="assets/phone.png" alt="" />Call 9003447322</a
+            ><a class="btn whatsapp-btn" href="https://wa.me/918667379791" target="_blank" rel="noopener">WhatsApp Us</a
+            ><a class="social-link instagram-link" href="https://www.instagram.com/malligeswaran_autodiesel_works/" target="_blank" rel="noopener"><span aria-hidden="true">◎</span> @malligeswaran_autodiesel_works</a
             ><a
-              class="contact-email"
+              class="contact-email contact-action"
               href="mailto:malligeswaranautodieselworks@gmail.com"
-              >malligeswaranautodieselworks@gmail.com</a
+              ><img src="assets/gmail.png" alt="" />malligeswaranautodieselworks@gmail.com</a
             >
           </div>
           <section class="location-card">
+            <div class="location-details">
+            <span class="location-label">WORKSHOP LOCATION</span>
             <h3>Malligeswaran Auto Diesel Works</h3>
-            <p>
+            <p class="location-address">
               <b>Address:</b><br />Dharmapuri New Bus Stand, Opposite LND
               Parking,<br />Dharmapuri, Tamil Nadu – 636804.
             </p>
@@ -157,6 +215,10 @@
               rel="noopener"
               >Get directions</a
             >
+            </div>
+            <div class="location-logo-wrap">
+              <img class="contact-brand-visual" src="assets/malligeswaran-logo-transparent.png" alt="Malligeswaran Auto Diesel Works lorry logo" />
+            </div>
           </section>
         </div>
       </section>
@@ -178,7 +240,7 @@
         <div>
           <b>Contact</b>
           <p>
-            8667379791 · 9003447322<br />malligeswaranautodieselworks@gmail.com
+            8667379791 , 9003447322<br />malligeswaranautodieselworks@gmail.com
           </p>
         </div>
       </div>
@@ -187,10 +249,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-<!-- Example Parallax Section -->
-<section class="parallax-section fade-in">
-  <div class="parallax-content">
-    <h2>Why Choose Us?</h2>
-    <p>With over 20 years of experience, state-of-the-art diagnostic tools, and a commitment to quality, we are the leading heavy vehicle service center in the region. Your fleet is in safe hands.</p>
-  </div>
-</section>

@@ -32,7 +32,7 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 
 async function customerIdentity(req, res, next) {
   const header = req.headers.authorization || "";
@@ -55,6 +55,13 @@ function clean(value, max = 500) {
     .slice(0, max);
 }
 
+function cleanVehiclePhoto(value) {
+  const photo = String(value ?? "");
+  // Photos are resized in the browser; only allow a compact JPEG data URL.
+  if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(photo) || photo.length > 550000) return "";
+  return photo;
+}
+
 function bookingMeta() {
   const now = new Date();
   const dateParts = new Intl.DateTimeFormat("en-GB", {
@@ -65,10 +72,13 @@ function bookingMeta() {
   const bookingTime = new Intl.DateTimeFormat("en-IN", {
     timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit", hour12: true
   }).format(now).toUpperCase();
-  const compactDate = `${part("year")}${part("month").slice(0, 3).toUpperCase()}${part("day")}`;
-  const compactTime = bookingTime.replace(/[^0-9APM]/g, "");
-  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return { bookingDate, bookingTime, bookingReference: `MADW-${compactDate}-${compactTime}-${suffix}` };
+  // Short, easy-to-share reference such as A7K2M. Ambiguous characters are omitted.
+  const referenceCharacters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bookingReference = Array.from(
+    { length: 5 },
+    () => referenceCharacters[Math.floor(Math.random() * referenceCharacters.length)]
+  ).join("");
+  return { bookingDate, bookingTime, bookingReference };
 }
 
 function jobCardMeta() {
@@ -130,6 +140,7 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
       lastServiceType: clean(req.body.lastServiceType, 120),
       serviceType: clean(req.body.serviceType, 80),
       problem: clean(req.body.problem, 1000),
+      vehicleFrontImage: cleanVehiclePhoto(req.body.vehicleFrontImage),
       customerUid: req.customer?.uid || "",
       customerEmail: req.customer?.email || "",
 
@@ -144,7 +155,8 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
       !booking.mobile ||
       !booking.vehicleNo ||
       !booking.vehicleType ||
-      !booking.serviceType
+      !booking.serviceType ||
+      !booking.vehicleFrontImage
     ) {
       return res.status(400).json({
         message: "Please fill all required fields"
@@ -200,7 +212,7 @@ app.get("/api/customer-bookings/:reference", requireCustomer, async (req, res) =
     const bookedEmail = String(booking.email || "").trim().toLowerCase();
     const accountEmail = String(req.customer.email || "").trim().toLowerCase();
     if (booking.customerUid !== req.customer.uid && (!bookedEmail || bookedEmail !== accountEmail)) return res.status(403).json({ message: "This reference is not linked to your customer account." });
-    res.json({ booking: { bookingReference: booking.bookingReference, vehicleNo: booking.vehicleNo, vehicleType: booking.vehicleType, serviceType: booking.serviceType, status: booking.status || "Pending", bookingDate: booking.bookingDate, bookingTime: booking.bookingTime } });
+    res.json({ booking: { bookingReference: booking.bookingReference, vehicleNo: booking.vehicleNo, vehicleType: booking.vehicleType, serviceType: booking.serviceType, status: booking.status || "Pending", bookingDate: booking.bookingDate, bookingTime: booking.bookingTime, customerNotification: booking.customerNotification || null } });
   } catch (error) {
     console.error("Customer status lookup error:", error);
     res.status(500).json({ message: "Unable to load service status." });
@@ -345,17 +357,36 @@ app.patch(
         });
       }
 
-      await db
-        .collection("bookings")
-        .doc(req.params.id)
-        .update({
-          status,
-          updatedAt:
-            admin.firestore.FieldValue.serverTimestamp()
-        });
+      const bookingRef = db.collection("bookings").doc(req.params.id);
+      const bookingSnapshot = await bookingRef.get();
+      if (!bookingSnapshot.exists) return res.status(404).json({ message: "Booking not found" });
+
+      const booking = bookingSnapshot.data();
+      const notification = status === "Approved"
+        ? {
+            type: "confirmed",
+            title: "Service booking confirmed",
+            message: `Your service booking has been accepted. Reference No: ${booking.bookingReference}. Our team will contact you shortly.`,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          }
+        : status === "Cancelled"
+          ? {
+              type: "rejected",
+              title: "Service booking update",
+              message: `Your service booking (Reference No: ${booking.bookingReference}) was not accepted. Please contact the workshop for more details.`,
+              createdAt: admin.firestore.FieldValue.serverTimestamp()
+            }
+          : null;
+
+      await bookingRef.update({
+        status,
+        customerNotification: notification,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
 
       res.json({
-        ok: true
+        ok: true,
+        booking: { id: bookingSnapshot.id, bookingReference: booking.bookingReference, status }
       });
 
     } catch (error) {

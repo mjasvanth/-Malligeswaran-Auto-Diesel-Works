@@ -54,7 +54,9 @@ form.addEventListener("submit", async event => {
     if (!response.ok) throw new Error(output.message || "Unable to load service status.");
     const booking = output.booking;
     message.textContent = "";
-    result.innerHTML = `<span class="eyebrow">CURRENT STATUS</span><h3>${escapeHtml(booking.status)}</h3><p><b>Reference No:</b> ${escapeHtml(booking.bookingReference)}<br><b>Vehicle:</b> ${escapeHtml(booking.vehicleNo)} (${escapeHtml(booking.vehicleType)})<br><b>Service:</b> ${escapeHtml(booking.serviceType)}<br><b>Booked:</b> ${escapeHtml(booking.bookingDate || "-")} ${escapeHtml(booking.bookingTime || "")}</p>`;
+    const notification = booking.customerNotification;
+    const notice = notification ? `<div class="booking-status-notice ${escapeHtml(notification.type || "")}"><b>${escapeHtml(notification.title || "Booking update")}</b><p>${escapeHtml(notification.message || "")}</p></div>` : "";
+    result.innerHTML = `<span class="eyebrow">CURRENT STATUS</span><h3>${escapeHtml(booking.status)}</h3>${notice}<p><b>Reference No:</b> ${escapeHtml(booking.bookingReference)}<br><b>Vehicle:</b> ${escapeHtml(booking.vehicleNo)} (${escapeHtml(booking.vehicleType)})<br><b>Service:</b> ${escapeHtml(booking.serviceType)}<br><b>Booked:</b> ${escapeHtml(booking.bookingDate || "-")} ${escapeHtml(booking.bookingTime || "")}</p>`;
     result.hidden = false;
   } catch (error) { message.textContent = error.message; message.style.color = "crimson"; }
 });
