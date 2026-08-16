@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Malligeswaran Auto Diesel Works</title>
     <link rel="stylesheet" href="style.css" />
+    <script defer src="navigation.js"></script>
   </head>
   <body>
     <header class="site-header">
@@ -20,6 +21,7 @@
           <a class="active" href="index.html">Home</a
           ><a href="services.html">Services</a
           ><a href="booking.html">Book Service</a
+          ><a href="service-status.html">Service Status</a
           ><a href="collaboration.html">Shop Collaboration</a
           ><a href="about.html">About</a
           ><a href="auth.html" class="admin-link">Login</a
@@ -29,6 +31,7 @@
     </header>
     <main>
       <section class="hero">
+        <video class="hero-background-video" src="assets/logo video.mp4" autoplay muted playsinline preload="auto" aria-hidden="true"></video>
         <div class="container hero-grid">
           <div>
             <span class="eyebrow">ASHOK LEYLAND HEAVY VEHICLE SPECIALIST</span>
@@ -51,11 +54,7 @@
           </div>
           <div class="hero-card quick-care-card">
             <span class="hero-logo-kicker">MALLIGESWARAN AUTO DIESEL WORKS</span>
-            <img
-              class="hero-logo-cinematic"
-              src="assets/malligeswaran-logo-transparent.png"
-              alt="Malligeswaran Auto Diesel Works"
-            />
+            <img class="hero-logo-cinematic" src="assets/malligeswaran-logo-transparent.png" alt="Malligeswaran Auto Diesel Works" />
             <span class="hero-logo-caption">Ashok Leyland Heavy Vehicle Specialist</span>
           </div>
         </div>
@@ -139,12 +138,12 @@
               <label class="full vehicle-photo-field"
                 >Vehicle Front View Image *
                 <div class="camera-actions">
-                  <select id="vehicleCameraFacing" aria-label="Choose camera">
-                    <option value="environment">Back camera</option>
-                    <option value="user">Front camera</option>
-                  </select>
                   <button id="openVehicleCamera" class="btn camera-btn" type="button">Open live camera</button>
                   <span>or choose an existing image</span>
+                </div>
+                <div id="vehicleCameraChoice" class="vehicle-camera-choice" role="dialog" aria-label="Choose a camera" hidden>
+                  <strong>Choose camera</strong>
+                  <div><button class="camera-choice-btn" type="button" data-facing="environment">Back camera</button><button class="camera-choice-btn" type="button" data-facing="user">Front camera</button></div>
                 </div>
                 <input id="vehicleFrontImage" name="vehicleFrontImage" type="file" accept="image/*" capture="environment" />
                 <small>Take a clear photo of the front side of your vehicle.</small>

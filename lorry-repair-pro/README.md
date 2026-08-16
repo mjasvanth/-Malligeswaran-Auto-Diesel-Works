@@ -45,3 +45,12 @@ Do not expose Firebase Admin credentials in frontend code.
    - `FIREBASE_SERVICE_ACCOUNT`: the complete JSON from your Firebase Admin service-account key (keep it secret).
    - `FRONTEND_ORIGIN`: your Vercel website URL, for example `https://your-site.vercel.app`.
 4. After Render gives you a public URL, place it in `frontend/config.js` as `API_BASE_URL`, then redeploy the frontend.
+
+## Automatic customer notifications
+
+When an admin changes a booking status (including through a job card), the backend can send an email and/or WhatsApp message automatically. Add either provider's credentials as Render environment variables:
+
+- Email via Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+- WhatsApp via Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`
+
+Use `backend/.env.example` as the exact variable template. If a provider is not configured, the booking status still updates normally and the website status page still shows the latest result.

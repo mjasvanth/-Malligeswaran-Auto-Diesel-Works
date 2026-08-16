@@ -3,7 +3,8 @@ const msg = document.getElementById("bookingMessage");
 const confirmation = document.getElementById("bookingConfirmation");
 const vehiclePhotoInput = document.getElementById("vehicleFrontImage");
 const vehiclePhotoPreview = document.getElementById("vehiclePhotoPreview");
-const vehicleCameraFacing = document.getElementById("vehicleCameraFacing");
+const vehicleCameraChoice = document.getElementById("vehicleCameraChoice");
+const cameraChoiceButtons = document.querySelectorAll(".camera-choice-btn");
 const openVehicleCamera = document.getElementById("openVehicleCamera");
 const vehicleCameraPanel = document.getElementById("vehicleCameraPanel");
 const vehicleCameraPreview = document.getElementById("vehicleCameraPreview");
@@ -11,6 +12,24 @@ const captureVehiclePhoto = document.getElementById("captureVehiclePhoto");
 const closeVehicleCamera = document.getElementById("closeVehicleCamera");
 let vehiclePhotoData = "";
 let vehicleCameraStream = null;
+
+// Play the opening logo animation once, then hold its last frame as a still logo.
+const logoVideo = document.querySelector(".hero-background-video");
+const logoAnimationDuration = 7;
+
+if (logoVideo) {
+  const stopLogoAnimation = () => {
+    if (logoVideo.currentTime >= logoAnimationDuration) {
+      logoVideo.pause();
+      logoVideo.currentTime = logoAnimationDuration;
+    }
+  };
+
+  logoVideo.addEventListener("timeupdate", stopLogoAnimation);
+  logoVideo.play().catch(() => {
+    // Muted autoplay is normally allowed; controls stay hidden if a browser blocks it.
+  });
+}
 
 const selectedService = new URLSearchParams(location.search).get("service");
 if (selectedService && form?.elements.serviceType) {
@@ -54,7 +73,7 @@ function stopVehicleCamera() {
   if (vehicleCameraPanel) vehicleCameraPanel.hidden = true;
 }
 
-openVehicleCamera?.addEventListener("click", async () => {
+async function openLiveVehicleCamera(facingMode) {
   if (!navigator.mediaDevices?.getUserMedia) {
     msg.textContent = "Live camera needs a secure site (HTTPS or localhost).";
     msg.style.color = "crimson";
@@ -62,7 +81,7 @@ openVehicleCamera?.addEventListener("click", async () => {
   }
   try {
     stopVehicleCamera();
-    vehicleCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: vehicleCameraFacing?.value || "environment" } }, audio: false });
+    vehicleCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } }, audio: false });
     vehicleCameraPreview.srcObject = vehicleCameraStream;
     vehicleCameraPanel.hidden = false;
     msg.textContent = "Camera is live. Frame the vehicle front and tap Take photo.";
@@ -71,7 +90,16 @@ openVehicleCamera?.addEventListener("click", async () => {
     msg.textContent = "Camera permission was not granted. Please allow camera access and try again.";
     msg.style.color = "crimson";
   }
+}
+
+openVehicleCamera?.addEventListener("click", () => {
+  vehicleCameraChoice.hidden = false;
 });
+
+cameraChoiceButtons.forEach(button => button.addEventListener("click", () => {
+  vehicleCameraChoice.hidden = true;
+  openLiveVehicleCamera(button.dataset.facing || "environment");
+}));
 
 captureVehiclePhoto?.addEventListener("click", () => {
   if (!vehicleCameraPreview?.videoWidth) return;
@@ -140,7 +168,7 @@ form?.addEventListener("submit", async (e) => {
 
     msg.textContent = "Your service request has been submitted.";
     msg.style.color = "green";
-    confirmation.innerHTML = `<strong>Booking confirmed</strong><span>Reference No: <b>${out.bookingReference || out.bookingId}</b></span><span>Date: <b>${out.bookingDate || "-"}</b></span><span>Time: <b>${out.bookingTime || "-"}</b></span><small>Our team will review your request and contact you on the mobile number provided.</small>`;
+    confirmation.innerHTML = `<strong>Booking confirmed</strong><span>Reference No: <b>${out.bookingReference || out.bookingId}</b></span><span>Date: <b>${out.bookingDate || "-"}</b></span><span>Time: <b>${out.bookingTime || "-"}</b></span><small>Save this reference number to check your status anytime.</small><a class="btn secondary" href="service-status.html">Check service status</a>`;
     confirmation.hidden = false;
     form.reset();
     vehiclePhotoData = "";

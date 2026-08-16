@@ -90,6 +90,87 @@ function jobCardMeta() {
   };
 }
 
+function customerBookingView(id, booking) {
+  return {
+    id,
+    bookingReference: booking.bookingReference,
+    vehicleNo: booking.vehicleNo,
+    vehicleType: booking.vehicleType,
+    serviceType: booking.serviceType,
+    status: booking.status || "Pending",
+    bookingDate: booking.bookingDate,
+    bookingTime: booking.bookingTime,
+    customerNotification: booking.customerNotification || null,
+    jobCard: booking.jobCard || null
+  };
+}
+
+function statusNotification(booking, status) {
+  const reference = booking.bookingReference || "your booking";
+  const message = `Your service booking status is now ${status}. Reference No: ${reference}. Malligeswaran Auto Diesel Works will contact you if any further action is needed.`;
+  return {
+    type: status === "Approved" ? "confirmed" : status === "Cancelled" ? "rejected" : "updated",
+    title: "Service booking status updated",
+    message,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+}
+
+function customerWhatsAppNumber(mobile) {
+  const digits = String(mobile || "").replace(/\D/g, "");
+  if (digits.length === 10) return `+91${digits}`;
+  if (digits.length >= 11 && digits.length <= 15) return `+${digits}`;
+  return "";
+}
+
+async function sendStatusNotifications(booking, status) {
+  const notification = statusNotification(booking, status);
+  const results = { email: "not configured", whatsapp: "not configured" };
+
+  if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL && booking.email) {
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM_EMAIL,
+          to: [booking.email],
+          subject: `Service booking update — ${booking.bookingReference}`,
+          text: notification.message
+        })
+      });
+      if (!response.ok) throw new Error(await response.text());
+      results.email = "sent";
+    } catch (error) {
+      results.email = "failed";
+      console.error("Status email failed:", error.message);
+    }
+  }
+
+  const whatsappTo = customerWhatsAppNumber(booking.mobile);
+  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_WHATSAPP_FROM && whatsappTo) {
+    try {
+      const credentials = Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString("base64");
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`, {
+        method: "POST",
+        headers: { Authorization: `Basic ${credentials}`, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          From: process.env.TWILIO_WHATSAPP_FROM,
+          To: `whatsapp:${whatsappTo}`,
+          Body: notification.message
+        })
+      });
+      if (!response.ok) throw new Error(await response.text());
+      results.whatsapp = "sent";
+    } catch (error) {
+      results.whatsapp = "failed";
+      console.error("Status WhatsApp failed:", error.message);
+    }
+  }
+
+  return { notification, results };
+}
+
 // Admin authentication
 async function requireAdmin(req, res, next) {
   try {
@@ -189,12 +270,14 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
 // Get all bookings for the logged-in customer
 app.get("/api/customer/my-bookings", requireCustomer, async (req, res) => {
   try {
-    const snapshot = await db.collection("bookings")
-      .where("customerUid", "==", req.customer.uid)
-      .orderBy("createdAt", "desc")
-      .get();
-
-    const bookings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const uidSnapshot = await db.collection("bookings").where("customerUid", "==", req.customer.uid).get();
+    const email = String(req.customer.email || "").trim().toLowerCase();
+    const emailSnapshot = email ? await db.collection("bookings").where("email", "==", email).get() : { docs: [] };
+    const documents = new Map();
+    [...uidSnapshot.docs, ...emailSnapshot.docs].forEach(doc => documents.set(doc.id, doc));
+    const bookings = [...documents.values()]
+      .map(doc => customerBookingView(doc.id, doc.data()))
+      .sort((a, b) => String(b.bookingDate || "").localeCompare(String(a.bookingDate || "")));
     res.json({ bookings });
   } catch (error) {
     console.error("Customer booking history error:", error);
@@ -212,7 +295,7 @@ app.get("/api/customer-bookings/:reference", requireCustomer, async (req, res) =
     const bookedEmail = String(booking.email || "").trim().toLowerCase();
     const accountEmail = String(req.customer.email || "").trim().toLowerCase();
     if (booking.customerUid !== req.customer.uid && (!bookedEmail || bookedEmail !== accountEmail)) return res.status(403).json({ message: "This reference is not linked to your customer account." });
-    res.json({ booking: { bookingReference: booking.bookingReference, vehicleNo: booking.vehicleNo, vehicleType: booking.vehicleType, serviceType: booking.serviceType, status: booking.status || "Pending", bookingDate: booking.bookingDate, bookingTime: booking.bookingTime, customerNotification: booking.customerNotification || null } });
+    res.json({ booking: customerBookingView(snapshot.docs[0].id, booking) });
   } catch (error) {
     console.error("Customer status lookup error:", error);
     res.status(500).json({ message: "Unable to load service status." });
@@ -346,6 +429,7 @@ app.patch(
         "In Progress",
         "Ready",
         "Delivered",
+        "Paid",
         "Cancelled"
       ];
 
@@ -362,31 +446,20 @@ app.patch(
       if (!bookingSnapshot.exists) return res.status(404).json({ message: "Booking not found" });
 
       const booking = bookingSnapshot.data();
-      const notification = status === "Approved"
-        ? {
-            type: "confirmed",
-            title: "Service booking confirmed",
-            message: `Your service booking has been accepted. Reference No: ${booking.bookingReference}. Our team will contact you shortly.`,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-          }
-        : status === "Cancelled"
-          ? {
-              type: "rejected",
-              title: "Service booking update",
-              message: `Your service booking (Reference No: ${booking.bookingReference}) was not accepted. Please contact the workshop for more details.`,
-              createdAt: admin.firestore.FieldValue.serverTimestamp()
-            }
-          : null;
+      if (booking.status === "Paid") return res.status(409).json({ message: "This paid job card is locked and cannot be changed." });
+      const { notification, results: notificationDelivery } = await sendStatusNotifications(booking, status);
 
       await bookingRef.update({
         status,
         customerNotification: notification,
+        notificationDelivery,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
       res.json({
         ok: true,
-        booking: { id: bookingSnapshot.id, bookingReference: booking.bookingReference, status }
+        booking: { id: bookingSnapshot.id, bookingReference: booking.bookingReference, status },
+        notificationDelivery
       });
 
     } catch (error) {
@@ -433,8 +506,12 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
     if (!booking.exists) {
       return res.status(404).json({ message: "Booking not found" });
     }
-    const previousJobCard = booking.data().jobCard || {};
-    const allowedStatuses = ["Pending", "Inspection", "Approved", "In Progress", "Ready", "Delivered", "Cancelled"];
+    const bookingData = booking.data();
+    if (bookingData.status === "Paid") {
+      return res.status(409).json({ message: "This paid job card is locked and cannot be edited." });
+    }
+    const previousJobCard = bookingData.jobCard || {};
+    const allowedStatuses = ["Pending", "Inspection", "Approved", "In Progress", "Ready", "Delivered", "Paid", "Cancelled"];
     const status = clean(req.body.status, 30);
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid job card status" });
@@ -454,9 +531,12 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
       savedAt: admin.firestore.FieldValue.serverTimestamp()
     };
 
+    const { notification, results: notificationDelivery } = await sendStatusNotifications(bookingData, status);
     await ref.update({
       jobCard,
       status,
+      customerNotification: notification,
+      notificationDelivery,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
