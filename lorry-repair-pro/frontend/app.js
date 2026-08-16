@@ -36,6 +36,57 @@ if (selectedService && form?.elements.serviceType) {
   form.elements.serviceType.value = selectedService;
 }
 
+function addVehicleSpecificationFields() {
+  const serviceType = form?.elements.serviceType;
+  const vehicleType = form?.elements.vehicleType;
+  if (!serviceType || !vehicleType || form.elements.vehicleBrand || form.elements.emissionStandard || form.elements.wheelCount) return;
+
+  const brandField = document.createElement("label");
+  // Brands with established commercial-truck presence and service support in Tamil Nadu.
+  brandField.innerHTML = `🚛 Lorry Brand *<select name="vehicleBrand" required><option value="">Select brand</option><option value="Ashok Leyland">Ashok Leyland</option><option value="Tata Motors">Tata Motors</option><option value="BharatBenz">BharatBenz</option><option value="Eicher">Eicher</option><option value="Mahindra Truck & Bus">Mahindra Truck & Bus</option><option value="SML Isuzu">SML Isuzu</option><option value="Force Motors">Force Motors</option><option value="Volvo Trucks">Volvo Trucks</option><option value="Scania">Scania</option><option value="MAN">MAN</option><option value="AMW">AMW</option><option value="BEML">BEML</option><option value="Hino">Hino</option><option value="Isuzu">Isuzu</option></select>`;
+
+  const brandLogoPreview = document.createElement("div");
+  brandLogoPreview.className = "vehicle-brand-logo-preview full";
+  brandLogoPreview.hidden = true;
+  brandLogoPreview.innerHTML = '<img alt="Selected lorry brand logo"><span></span>';
+  const brandLogos = {
+    "Ashok Leyland": "https://logo.clearbit.com/ashokleyland.com?size=128",
+    "Tata Motors": "https://logo.clearbit.com/tatamotors.com?size=128",
+    "BharatBenz": "https://logo.clearbit.com/bharatbenz.com?size=128",
+    "Eicher": "https://logo.clearbit.com/eichertrucksandbuses.com?size=128",
+    "Mahindra Truck & Bus": "https://logo.clearbit.com/mahindra.com?size=128",
+    "SML Isuzu": "https://logo.clearbit.com/smlisuzu.com?size=128",
+    "Force Motors": "https://logo.clearbit.com/forcemotors.com?size=128",
+    "Volvo Trucks": "https://logo.clearbit.com/volvotrucks.in?size=128",
+    "Scania": "https://logo.clearbit.com/scania.com?size=128",
+    "MAN": "https://logo.clearbit.com/man.eu?size=128",
+    "AMW": "https://logo.clearbit.com/amwasia.com?size=128",
+    "BEML": "https://logo.clearbit.com/bemlindia.in?size=128",
+    "Hino": "https://logo.clearbit.com/hino.co.in?size=128",
+    "Isuzu": "https://logo.clearbit.com/isuzu.in?size=128"
+  };
+  const brandSelect = brandField.querySelector("select");
+  brandSelect.addEventListener("change", () => {
+    const brand = brandSelect.value;
+    const image = brandLogoPreview.querySelector("img");
+    image.hidden = false;
+    image.src = brandLogos[brand] || "";
+    image.alt = brand ? `${brand} logo` : "";
+    brandLogoPreview.querySelector("span").textContent = brand;
+    brandLogoPreview.hidden = !brand;
+  });
+  brandLogoPreview.querySelector("img").addEventListener("error", event => { event.currentTarget.hidden = true; });
+
+  const emissionField = document.createElement("label");
+  emissionField.innerHTML = `🌿 Emission Standard *<select name="emissionStandard" required><option value="">Select BS type</option><option value="BS-3">BS-3</option><option value="BS-4">BS-4</option><option value="BS-6">BS-6</option></select>`;
+  const wheelsField = document.createElement("label");
+  wheelsField.innerHTML = `🛞 Wheel Count *<select name="wheelCount" required><option value="">Select wheels</option><option value="4 Wheels">4 Wheels</option><option value="6 Wheels">6 Wheels</option><option value="8 Wheels">8 Wheels</option><option value="10 Wheels">10 Wheels</option><option value="12 Wheels">12 Wheels</option><option value="14 Wheels">14 Wheels</option><option value="16 Wheels">16 Wheels</option><option value="18 Wheels">18 Wheels</option><option value="22 Wheels">22 Wheels</option><option value="Other">Other</option></select>`;
+  vehicleType.closest("label").after(brandField, brandLogoPreview);
+  serviceType.closest("label").after(emissionField, wheelsField);
+}
+
+addVehicleSpecificationFields();
+
 function compressVehiclePhoto(source, sourceWidth, sourceHeight) {
   const maxWidth = 960;
   const scale = Math.min(1, maxWidth / sourceWidth);

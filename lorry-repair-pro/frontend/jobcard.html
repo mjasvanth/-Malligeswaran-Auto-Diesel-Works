@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Job Card | Malligeswaran Auto Diesel Works</title>
     <link rel="stylesheet" href="jobcard.css" />
+    <link rel="stylesheet" href="jobcard-payment.css" />
   </head>
   <body>
     <div class="toolbar">
       <button onclick="history.back()">← Back</button
       ><button id="saveJobCardBtn">Save Job Card</button
+      ><button id="paidSaveJobCardBtn" class="paid-save-btn" type="button">💰 Paid &amp; Save</button
       ><button onclick="window.print()">🖨 Print Job Card</button>
     </div>
     <main class="jobcard">
@@ -36,7 +38,19 @@
           <label>Vehicle Number</label><strong id="vehicleNo">—</strong>
         </div>
         <div>
-          <label>Vehicle Type</label><strong id="vehicleType">—</strong>
+          <label>Vehicle Type</label><strong id="vehicleType">-</strong>
+        </div>
+        <div>
+          <label>Vehicle Brand</label><strong id="vehicleBrand">-</strong>
+        </div>
+        <div>
+          <label>Emission Standard</label><strong id="emissionStandard">-</strong>
+        </div>
+        <div>
+          <label>Wheel Count</label><strong id="wheelCount">-</strong>
+        </div>
+        <div>
+          <label>Service Type</label><strong id="serviceType">-</strong>
         </div>
       </div>
       <section class="section-title">JOB CARD STATUS</section>
@@ -87,6 +101,16 @@
           <span>Grand Total</span><b id="grandTotal">₹ 0.00</b>
         </div>
       </div>
+      <div class="balance-row">
+        <span>Balance Amount</span><b id="balanceAmount">₹ 0.00</b>
+      </div>
+      <section class="section-title">PAYMENT DETAILS</section>
+      <div class="payment-grid">
+        <label>Discount (₹)<input id="discountAmount" type="number" min="0" step="0.01" value="0" /></label>
+        <label>Amount Paid (₹)<input id="paidAmount" type="number" min="0" step="0.01" value="0" /></label>
+        <label>Payment Method<select id="paymentMethod"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Card">Card</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select></label>
+        <label>Payment Reference / Note<input id="paymentReference" maxlength="100" placeholder="UPI reference, receipt no., or note" /></label>
+      </div>
       <section class="section-title">APPROVAL</section>
       <p class="terms">
         I authorize the workshop to carry out the approved work. Additional
@@ -105,5 +129,6 @@
     <script src="config.js"></script>
     <script type="module" src="jobcard.js"></script>
     <script src="jobcard-lock.js"></script>
+    <script src="jobcard-payment.js"></script>
   </body>
 </html>

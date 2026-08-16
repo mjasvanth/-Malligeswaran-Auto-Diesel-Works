@@ -1,7 +1,7 @@
 function lockPaidJobCard() {
   const status = document.getElementById("jobStatus");
   if (!status || status.value !== "Paid") return;
-  document.querySelectorAll("#billRows input, #gstRate, #jobStatus, #addRowBtn, #saveJobCardBtn, .remove-row").forEach(element => { element.disabled = true; });
+  document.querySelectorAll("#billRows input, #gstRate, #jobStatus, #addRowBtn, #saveJobCardBtn, #paidSaveJobCardBtn, #discountAmount, #paidAmount, #paymentMethod, #paymentReference, .remove-row").forEach(element => { element.disabled = true; });
   const saveButton = document.getElementById("saveJobCardBtn");
   if (saveButton) saveButton.textContent = "Paid — Job Card Locked";
 }

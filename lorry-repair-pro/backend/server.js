@@ -96,6 +96,9 @@ function customerBookingView(id, booking) {
     bookingReference: booking.bookingReference,
     vehicleNo: booking.vehicleNo,
     vehicleType: booking.vehicleType,
+    vehicleBrand: booking.vehicleBrand,
+    emissionStandard: booking.emissionStandard,
+    wheelCount: booking.wheelCount,
     serviceType: booking.serviceType,
     status: booking.status || "Pending",
     bookingDate: booking.bookingDate,
@@ -217,6 +220,9 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
       email: clean(req.body.email, 150),
       vehicleNo: clean(req.body.vehicleNo, 40).toUpperCase(),
       vehicleType: clean(req.body.vehicleType, 60),
+      vehicleBrand: clean(req.body.vehicleBrand, 60),
+      emissionStandard: clean(req.body.emissionStandard, 20),
+      wheelCount: clean(req.body.wheelCount, 30),
       lastServiceDate: clean(req.body.lastServiceDate, 30),
       lastServiceType: clean(req.body.lastServiceType, 120),
       serviceType: clean(req.body.serviceType, 80),
@@ -236,6 +242,9 @@ app.post("/api/bookings", customerIdentity, async (req, res) => {
       !booking.mobile ||
       !booking.vehicleNo ||
       !booking.vehicleType ||
+      !booking.vehicleBrand ||
+      !booking.emissionStandard ||
+      !booking.wheelCount ||
       !booking.serviceType ||
       !booking.vehicleFrontImage
     ) {
@@ -501,6 +510,11 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
     const subtotal = items.reduce((total, item) => total + item.amount, 0);
     const gstRate = Math.min(toAmount(req.body.gstRate, 100), 100);
     const gstAmount = subtotal * gstRate / 100;
+    const discountAmount = Math.min(toAmount(req.body.discountAmount), subtotal + gstAmount);
+    const grandTotal = subtotal + gstAmount - discountAmount;
+    const paidAmount = toAmount(req.body.paidAmount);
+    const paymentMethod = clean(req.body.paymentMethod, 30) || "Cash";
+    const paymentReference = clean(req.body.paymentReference, 100);
     const ref = db.collection("bookings").doc(req.params.id);
     const booking = await ref.get();
     if (!booking.exists) {
@@ -516,6 +530,9 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid job card status" });
     }
+    if (status === "Paid" && paidAmount < grandTotal) {
+      return res.status(400).json({ message: "Enter the full paid amount before marking this job card as Paid." });
+    }
     const meta = previousJobCard.jobCardNo ? {
       jobCardNo: previousJobCard.jobCardNo,
       jobCardDate: previousJobCard.jobCardDate,
@@ -527,7 +544,11 @@ app.put("/api/bookings/:id/job-card", requireAdmin, async (req, res) => {
       gstRate,
       subtotal,
       gstAmount,
-      grandTotal: subtotal + gstAmount,
+      discountAmount,
+      grandTotal,
+      paidAmount,
+      paymentMethod,
+      paymentReference,
       savedAt: admin.firestore.FieldValue.serverTimestamp()
     };
 

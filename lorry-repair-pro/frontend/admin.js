@@ -43,7 +43,7 @@ function renderBookings(list) {
     return `<tr>
       <td><b>${escapeHtml(booking.bookingReference || booking.id)}</b><br><small>${escapeHtml(booking.bookingDate || formatBookingDate(booking.createdAt))}</small><br><small>${escapeHtml(booking.bookingTime || "")}</small></td>
       <td>${escapeHtml(booking.name)}<br><small>${escapeHtml(booking.mobile)}</small><br><small>${escapeHtml(booking.email)}</small></td>
-      <td>${escapeHtml(booking.vehicleNo)}<br><small>${escapeHtml(booking.vehicleType)}</small><br>${vehiclePhotoMarkup(booking.vehicleFrontImage)}</td>
+      <td>${escapeHtml(booking.vehicleNo)}<br><small>${escapeHtml(booking.vehicleBrand || "-")} · ${escapeHtml(booking.vehicleType)} · ${escapeHtml(booking.emissionStandard || "-")} · ${escapeHtml(booking.wheelCount || "-")}</small><br>${vehiclePhotoMarkup(booking.vehicleFrontImage)}</td>
       <td>${escapeHtml(booking.serviceType)}</td>
       <td>${escapeHtml(booking.problem || "-")}</td>
       <td><span class="badge status-${statusClass(status)}">${escapeHtml(status)}</span></td>
